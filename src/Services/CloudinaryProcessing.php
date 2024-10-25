@@ -74,7 +74,7 @@ class CloudinaryProcessing
                     $transformations[] = ['overlay' => $watermark];
                 }
 
-                $result = $cloudinary->image()->upload($photo_url_origin, ['transformation' => $transformations]);
+                $result = $cloudinary->uploadApi()->upload($photo_url_origin, ['transformation' => $transformations]);
                 $results[] = $result->getSecureUrl();
             }
         } else {
