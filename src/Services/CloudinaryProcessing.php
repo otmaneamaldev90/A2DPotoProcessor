@@ -3,10 +3,6 @@
 namespace AutoDealersDigital\PhotoProcessor\Services;
 
 use Cloudinary\Cloudinary;
-use Cloudinary\Transformation\Resize;
-use Cloudinary\Transformation\Format;
-use Cloudinary\Transformation\Quality;
-use Cloudinary\Transformation\Effect;
 
 class CloudinaryProcessing
 {
@@ -30,59 +26,62 @@ class CloudinaryProcessing
         ]);
 
         $results = [];
-        $photos = $this->params['photos'] ?? [];
+        $quality = $this->params['quality'] ?? 100;
+        $width = $this->params['width'] ?? null;
+        $height = $this->params['height'] ?? null;
+        $fill = $this->params['fill'] ?? 1;
         $overlay_images = $this->params['overlay_images'] ?? [];
         $watermark = $this->params['watermark_images'] ?? '';
+        $brightness = $this->params['brightness'] ?? null;
+        $contrast = $this->params['contrast'] ?? null;
+        $photos = $this->params['photos'] ?? [];
 
-        if (!empty($photos) && is_array($photos)) {
+        // Sort photos for consistent ordering
+        usort($photos, function ($a, $b) {
+            return (int) filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT) - (int) filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
+        });
 
-            // Sort photos based on extracted number, similar to Thumbor logic
-            usort($photos, function ($a, $b) {
-                $numA = (int) filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT);
-                $numB = (int) filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
-                return $numA - $numB;
-            });
+        foreach ($photos as $key => $photo) {
+            $transformation = [
+                'quality' => $quality,
+                'crop' => 'pad', // Ensures padding with background color
+                'background' => 'auto', // Auto-detect background color
+                'width' => $width,
+                'height' => $height,
+            ];
 
-            foreach ($photos as $key => $photo) {
-                $transformation = (new \Cloudinary\Transformation\Transformation())
-                    ->resize(Resize::fill($this->params['width'] ?? null, $this->params['height'] ?? null))
-                    ->quality(Quality::level($this->params['quality'] ?? 100));
-
-                // Optional brightness and contrast
-                if (isset($this->params['brightness'])) {
-                    $transformation->effect(Effect::brightness($this->params['brightness']));
-                }
-                if (isset($this->params['contrast'])) {
-                    $transformation->effect(Effect::contrast($this->params['contrast']));
-                }
-
-                // Optional background fill color
-                if (!empty($this->params['default_bg_color'])) {
-                    $transformation->background($this->params['default_bg_color']);
-                }
-
-                // Check overlay/watermark logic as per photo index
-                $watermark_order = false;
-                if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
-                    $watermark_order = true;
-                } elseif (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
-                    $watermark_order = true;
-                } elseif (in_array('3', $overlay_images) && $key == (count($photos) - 1) && !empty($watermark)) {
-                    $watermark_order = true;
-                }
-
-                if ($watermark_order) {
-                    $transformation->overlay($watermark);
-                }
-
-                // Generate the Cloudinary URL with transformations
-                $photo_url_origin = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-                $result = $cloudinary->image($photo_url_origin)->addTransformation($transformation)->toUrl();
-
-                $results[] = (string) $result;
+            // Optional filters
+            if ($brightness !== null) {
+                $transformation[] = ['effect' => "brightness:{$brightness}"];
             }
-        } else {
-            \Log::warning("No photos found for processing");
+            if ($contrast !== null) {
+                $transformation[] = ['effect' => "contrast:{$contrast}"];
+            }
+
+            // Apply watermark based on overlay rules
+            $applyWatermark = false;
+            if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
+                $applyWatermark = true;
+            } elseif (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
+                $applyWatermark = true;
+            } elseif (in_array('3', $overlay_images) && $key == (count($photos) - 1) && !empty($watermark)) {
+                $applyWatermark = true;
+            }
+
+            if ($applyWatermark) {
+                $transformation[] = [
+                    'overlay' => $watermark,
+                    'gravity' => 'south_east', // Position the watermark, adjust as needed
+                    'x' => 0,
+                    'y' => 0
+                ];
+            }
+
+            // Generate URL for the image
+            $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
+            $url = $cloudinary->image($public_id)->toUrl($transformation);
+
+            $results[] = (string) $url;
         }
 
         return $results;
