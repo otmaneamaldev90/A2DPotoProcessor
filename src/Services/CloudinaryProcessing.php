@@ -36,12 +36,12 @@ class CloudinaryProcessing
         $contrast = $this->params['contrast'] ?? null;
         $photos = $this->params['photos'] ?? [];
 
-        // Sort photos for consistent ordering
         usort($photos, function ($a, $b) {
             return (int) filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT) - (int) filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
         });
 
         foreach ($photos as $key => $photo) {
+            // Flatten transformation array
             $transformation = [
                 'quality' => $quality,
                 'crop' => 'pad', // Ensures padding with background color
@@ -50,15 +50,13 @@ class CloudinaryProcessing
                 'height' => $height,
             ];
 
-            // Optional filters
             if ($brightness !== null) {
-                $transformation[] = ['effect' => "brightness:{$brightness}"];
+                $transformation['effect'] = "brightness:{$brightness}";
             }
             if ($contrast !== null) {
-                $transformation[] = ['effect' => "contrast:{$contrast}"];
+                $transformation['effect'] .= "|contrast:{$contrast}";
             }
 
-            // Apply watermark based on overlay rules
             $applyWatermark = false;
             if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
                 $applyWatermark = true;
@@ -69,15 +67,12 @@ class CloudinaryProcessing
             }
 
             if ($applyWatermark) {
-                $transformation[] = [
-                    'overlay' => $watermark,
-                    'gravity' => 'south_east', // Position the watermark, adjust as needed
-                    'x' => 0,
-                    'y' => 0
-                ];
+                $transformation['overlay'] = $watermark;
+                $transformation['gravity'] = 'south_east'; // Adjust if needed
+                $transformation['x'] = 0;
+                $transformation['y'] = 0;
             }
 
-            // Generate URL for the image
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
             $url = $cloudinary->image($public_id)->toUrl($transformation);
 
