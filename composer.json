@@ -1,0 +1,31 @@
+{
+    "name": "autodealersdigital/photo-processor",
+    "description": "A Laravel package for handling images with Thumbor + AWS and Cloudinary.",
+    "type": "library",
+    "license": "MIT",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Otmane Amal",
+            "email": "o.amal@autodealersdigital.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0",
+        "illuminate/support": "^8.0|^9.0",
+        "beeyev/thumbor-php": "^2.0",
+        "cloudinary/cloudinary_php": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AutoDealersDigital\\PhotoProcessor\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AutoDealersDigital\\PhotoProcessor\\PhotoProcessorServiceProvider"
+            ]
+        }
+    }
+}
