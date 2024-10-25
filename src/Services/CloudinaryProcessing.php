@@ -50,12 +50,12 @@ class CloudinaryProcessing
             ];
 
             // Optional filters
-            if ($brightness !== null) {
-                $transformation[] = ['effect' => "brightness:{$brightness}"];
-            }
-            if ($contrast !== null) {
-                $transformation[] = ['effect' => "contrast:{$contrast}"];
-            }
+            // if ($brightness !== null) {
+            //     $transformation[] = ['effect' => "brightness:{$brightness}"];
+            // }
+            // if ($contrast !== null) {
+            //     $transformation[] = ['effect' => "contrast:{$contrast}"];
+            // }
 
             // Apply watermark based on overlay rules
             $applyWatermark = false;
@@ -67,14 +67,14 @@ class CloudinaryProcessing
                 $applyWatermark = true;
             }
 
-            if ($applyWatermark) {
-                $transformation[] = [
-                    'overlay' => $watermark,
-                    'gravity' => 'south_east', // Position the watermark, adjust as needed
-                    'x' => 0,
-                    'y' => 0
-                ];
-            }
+            // if ($applyWatermark) {
+            //     $transformation[] = [
+            //         'overlay' => $watermark,
+            //         'gravity' => 'south_east', // Position the watermark, adjust as needed
+            //         'x' => 0,
+            //         'y' => 0
+            //     ];
+            // }
 
             // Generate URL for the image
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
