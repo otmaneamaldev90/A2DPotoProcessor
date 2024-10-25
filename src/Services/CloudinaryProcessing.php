@@ -79,7 +79,7 @@ class CloudinaryProcessing
                 $photo_url_origin = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
                 $result = $cloudinary->image($photo_url_origin)->addTransformation($transformation)->toUrl();
 
-                $results[] = (string) $result;
+                $results[] = $result;
             }
         } else {
             \Log::warning("No photos found for processing");
