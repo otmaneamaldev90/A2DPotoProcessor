@@ -27,10 +27,21 @@ class CloudinaryProcessing
 
         $results = [];
         $photos = $this->params['photos'] ?? [];
+        $quality = $this->params['quality'] ?? 100; // Default to 100 if not provided
 
+        // Sort photos numerically by the 'photo' key
+        usort($photos, function ($a, $b) {
+            $numA = (int) filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT);
+            $numB = (int) filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
+            return $numA - $numB;
+        });
+
+        // Generate URLs with quality for each sorted photo
         foreach ($photos as $photo) {
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            $url = $cloudinary->image($public_id)->toUrl();
+            $url = $cloudinary->image($public_id)
+                ->quality($quality) // Apply the quality setting here
+                ->toUrl();
 
             $results[] = (string) $url;
         }
