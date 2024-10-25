@@ -17,44 +17,87 @@ class CloudinaryProcessing
 
     public function process()
     {
-        $cloudinary = new Cloudinary([
-            'cloud' => [
-                'cloud_name' => config('photo_processor.services.cloudinary.cloud_name'),
-                'api_key'    => config('photo_processor.services.cloudinary.api_key'),
-                'api_secret' => config('photo_processor.services.cloudinary.api_secret'),
-            ]
-        ]);
-
         $results = [];
         $photos = $this->params['photos'] ?? [];
+        $width = $this->params['width'] ?? 800;
+        $height = $this->params['height'] ?? 600;
         $quality = $this->params['quality'] ?? 100;
+        $fill = $this->params['fill'] ?? 1;
+        $overlay_images = $this->params['overlay_images'] ?? [];
+        $watermark = $this->params['watermark_images'] ?? '';
         $brightness = $this->params['brightness'] ?? null;
         $contrast = $this->params['contrast'] ?? null;
 
-        // Sort photos numerically by the 'photo' key
-        usort($photos, function ($a, $b) {
-            $numA = (int) filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT);
-            $numB = (int) filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
-            return $numA - $numB;
-        });
+        $cloudinary = new Cloudinary([
+            'cloud' => [
+                'cloud_name' => config('yourpackagename.cloudinary_cloud_name'),
+                'api_key' => config('yourpackagename.cloudinary_api_key'),
+                'api_secret' => config('yourpackagename.cloudinary_api_secret'),
+            ],
+        ]);
 
-        foreach ($photos as $photo) {
-            $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
+        if (!empty($photos) && is_array($photos)) {
+            usort($photos, function ($a, $b) {
+                $numA = (int)filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT);
+                $numB = (int)filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
+                return $numA - $numB;
+            });
 
-            $urlBuilder = $cloudinary->image($public_id)
-                ->quality($quality);
+            foreach ($photos as $key => $photo) {
+                $transformations = [];
 
-            if ($brightness !== null) {
-                $urlBuilder->effect("brightness:{$brightness}");
+                if ($fill == 1) {
+                    if (!empty($this->params['default_bg_color'])) {
+                        $hex = ltrim($this->params['default_bg_color'], '#');
+                        $transformations[] = ['effect' => 'fill:rgb:' . $hex];
+                    } elseif (!empty($this->params['default_bg_color_blur'])) {
+                        $transformations[] = ['effect' => 'blur'];
+                    } else {
+                        $transformations[] = ['crop' => 'fill'];
+                    }
+                }
+
+                if ($brightness !== null && is_numeric($brightness)) {
+                    $transformations[] = ['effect' => 'brightness:' . $brightness];
+                }
+
+                if ($contrast !== null && is_numeric($contrast)) {
+                    $transformations[] = ['effect' => 'contrast:' . $contrast];
+                }
+
+                $transformations[] = ['quality' => $quality];
+                $transformations[] = ['width' => $width, 'height' => $height];
+
+                $photo_url_origin = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
+
+                if ($this->shouldApplyWatermark($overlay_images, $key, $photos, $watermark)) {
+                    $transformations[] = ['overlay' => $watermark];
+                }
+
+                $result = $cloudinary->image()->upload($photo_url_origin, ['transformation' => $transformations]);
+                $results[] = $result->getSecureUrl();
             }
-
-            if ($contrast !== null) {
-                $urlBuilder->effect("contrast:{$contrast}");
-            }
-
-            $results[] = (string) $urlBuilder->toUrl();
+        } else {
+            \Log::warning("No photos were found");
         }
 
         return $results;
+    }
+
+    private function shouldApplyWatermark($overlay_images, $key, $photos, $watermark)
+    {
+        if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
+            return true;
+        }
+
+        if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
+            return true;
+        }
+
+        if (in_array('3', $overlay_images) && $key == (count($photos) - 1) && !empty($watermark)) {
+            return true;
+        }
+
+        return false;
     }
 }
