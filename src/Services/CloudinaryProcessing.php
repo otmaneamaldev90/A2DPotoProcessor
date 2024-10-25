@@ -26,55 +26,22 @@ class CloudinaryProcessing
         ]);
 
         $results = [];
-        $quality = $this->params['quality'] ?? 100;
-        $width = $this->params['width'] ?? null;
-        $height = $this->params['height'] ?? null;
-        $fill = $this->params['fill'] ?? 1;
-        $overlay_images = $this->params['overlay_images'] ?? [];
-        $watermark = $this->params['watermark_images'] ?? '';
-        $brightness = $this->params['brightness'] ?? null;
-        $contrast = $this->params['contrast'] ?? null;
         $photos = $this->params['photos'] ?? [];
+        $quality = $this->params['quality'] ?? 100; // Default to 100 if not provided
 
+        // Sort photos numerically by the 'photo' key
         usort($photos, function ($a, $b) {
-            return (int) filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT) - (int) filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
+            $numA = (int) filter_var($a['photo'], FILTER_SANITIZE_NUMBER_INT);
+            $numB = (int) filter_var($b['photo'], FILTER_SANITIZE_NUMBER_INT);
+            return $numA - $numB;
         });
 
-        foreach ($photos as $key => $photo) {
-            // Flatten transformation array
-            $transformation = [
-                'quality' => $quality,
-                'crop' => 'pad', // Ensures padding with background color
-                'background' => 'auto', // Auto-detect background color
-                'width' => $width,
-                'height' => $height,
-            ];
-
-            if ($brightness !== null) {
-                $transformation['effect'] = "brightness:{$brightness}";
-            }
-            if ($contrast !== null) {
-                $transformation['effect'] .= "|contrast:{$contrast}";
-            }
-
-            $applyWatermark = false;
-            if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
-                $applyWatermark = true;
-            } elseif (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
-                $applyWatermark = true;
-            } elseif (in_array('3', $overlay_images) && $key == (count($photos) - 1) && !empty($watermark)) {
-                $applyWatermark = true;
-            }
-
-            if ($applyWatermark) {
-                $transformation['overlay'] = $watermark;
-                $transformation['gravity'] = 'south_east'; // Adjust if needed
-                $transformation['x'] = 0;
-                $transformation['y'] = 0;
-            }
-
+        // Generate URLs with quality for each sorted photo
+        foreach ($photos as $photo) {
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            $url = $cloudinary->image($public_id)->toUrl($transformation);
+            $url = $cloudinary->image($public_id)
+                ->quality($quality) // Apply the quality setting here
+                ->toUrl();
 
             $results[] = (string) $url;
         }
