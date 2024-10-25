@@ -29,6 +29,8 @@ class CloudinaryProcessing
         $photos = $this->params['photos'] ?? [];
         $quality = $this->params['quality'] ?? 100; // Default to 100 if not provided
         $fill = $this->params['fill'] ?? 1; // Default fill option
+        $overlay_images = $this->params['overlay_images'] ?? [];
+        $watermark = $this->params['watermark_images'] ?? '';
 
         // Sort photos numerically by the 'photo' key
         usort($photos, function ($a, $b) {
@@ -38,9 +40,10 @@ class CloudinaryProcessing
         });
 
         // Generate URLs with quality and background fill for each sorted photo
-        foreach ($photos as $photo) {
+        foreach ($photos as $key => $photo) {
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            $image = $cloudinary->image($public_id)->quality($quality);
+            $image = $cloudinary->image($public_id)
+                ->quality($quality);
 
             // Apply fill options based on the fill parameter
             if ($fill == 1) {
@@ -54,10 +57,32 @@ class CloudinaryProcessing
                 }
             }
 
+            // Check if we should apply a watermark
+            if ($this->shouldApplyWatermark($overlay_images, $key, $photos, $watermark)) {
+                $image->overlay($watermark, ['gravity' => 'south_east', 'x' => 0, 'y' => 0]);
+            }
+
             $url = $image->toUrl();
             $results[] = (string) $url;
         }
 
         return $results;
+    }
+
+    private function shouldApplyWatermark($overlay_images, $key, $photos, $watermark)
+    {
+        if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
+            return true;
+        }
+
+        if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
+            return true;
+        }
+
+        if (in_array('3', $overlay_images) && $key == (count($photos) - 1) && !empty($watermark)) {
+            return true;
+        }
+
+        return false;
     }
 }
