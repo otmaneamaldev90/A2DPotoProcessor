@@ -30,10 +30,10 @@ class CloudinaryProcessing
 
         $cloudinary = new Cloudinary([
             'cloud' => [
-                'cloud_name' => config('yourpackagename.cloudinary_cloud_name'),
-                'api_key' => config('yourpackagename.cloudinary_api_key'),
-                'api_secret' => config('yourpackagename.cloudinary_api_secret'),
-            ],
+                'cloud_name' => config('photo_processor.services.cloudinary.cloud_name'),
+                'api_key'    => config('photo_processor.services.cloudinary.api_key'),
+                'api_secret' => config('photo_processor.services.cloudinary.api_secret'),
+            ]
         ]);
 
         if (!empty($photos) && is_array($photos)) {
