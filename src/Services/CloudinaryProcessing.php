@@ -28,6 +28,7 @@ class CloudinaryProcessing
         $results = [];
         $photos = $this->params['photos'] ?? [];
         $quality = $this->params['quality'] ?? 100; // Default to 100 if not provided
+        $fill = $this->params['fill'] ?? 1; // Default fill option
 
         // Sort photos numerically by the 'photo' key
         usort($photos, function ($a, $b) {
@@ -36,13 +37,24 @@ class CloudinaryProcessing
             return $numA - $numB;
         });
 
-        // Generate URLs with quality for each sorted photo
+        // Generate URLs with quality and background fill for each sorted photo
         foreach ($photos as $photo) {
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            $url = $cloudinary->image($public_id)
-                ->quality($quality) // Apply the quality setting here
-                ->toUrl();
+            $image = $cloudinary->image($public_id)->quality($quality);
 
+            // Apply fill options based on the fill parameter
+            if ($fill == 1) {
+                if (!empty($this->params['default_bg_color'])) {
+                    $hex = ltrim($this->params['default_bg_color'], '#');
+                    $image->background($hex);
+                } elseif (!empty($this->params['default_bg_color_blur'])) {
+                    $image->background('blur');
+                } else {
+                    $image->background('auto');
+                }
+            }
+
+            $url = $image->toUrl();
             $results[] = (string) $url;
         }
 
