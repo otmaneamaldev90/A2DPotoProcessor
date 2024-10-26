@@ -56,7 +56,7 @@ class CloudinaryProcessing
             // Add fill with the dominant color or auto padding
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
-                    $hex = ltrim($this->params['default_bg_color'], '#');
+                    $hex = $this->hexToRgbFormat($this->params['default_bg_color']);
                     $resize = Resize::pad()->width($width)->height($height)->background(Background::rgb($hex));
                 } else {
                     $resize = Resize::pad()->width($width)->height($height)->background(Background::predominant());
@@ -105,5 +105,20 @@ class CloudinaryProcessing
         }
 
         return $results;
+    }
+
+    private function hexToRgbFormat($hex)
+    {
+        $hex = ltrim($hex, '#');
+
+        if (!preg_match('/^[a-fA-F0-9]{6}$/', $hex)) {
+            throw new InvalidArgumentException("Invalid hex color code: $hex");
+        }
+
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+
+        return sprintf('rgb:%02x%02x%02x', $r, $g, $b);
     }
 }
