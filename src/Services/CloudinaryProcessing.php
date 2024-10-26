@@ -63,23 +63,6 @@ class CloudinaryProcessing {
                 }
             }
 
-            // Add quality
-            $transformation[] = ['quality' => $quality];
-
-            // Add fill with the dominant color or auto padding
-            if ($fill == 1) {
-                if (!empty($this->params['default_bg_color'])) {
-                    $hex = ltrim($this->params['default_bg_color'], '#');
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
-                } elseif (!empty($this->params['default_bg_color_blur'])) {
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::generativeFill());
-                } else {
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::predominant());
-                }
-            } else {
-                $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
-            }
-
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
                 $transformation[] = Effect::brightness($brightness);
@@ -90,9 +73,11 @@ class CloudinaryProcessing {
                 $transformation[] = Effect::contrast($contrast);
             }
 
+            // Apply the transformation
             $url = $cloudinary->image($public_id)
-                ->resize($resize)
                 ->addTransformation($transformation)
+                ->resize(Resize::pad()->width($width)->height($height)->background(Background::auto()))
+                ->quality($quality)
                 ->toUrl();
 
             $results[] = (string) $url;
