@@ -62,19 +62,12 @@ class CloudinaryProcessing
                     $apply_overlay = true;
                 }
                 if ($apply_overlay) {
-                    $transformation[] = [
-                        'overlay' => $watermark,
-                        'gravity' => 'auto',
-                        'width' => $width,
-                        'height' => $height,
-                        'crop' => 'fill',
-                        'flags' => 'layer_apply'
-                    ];
+                    $transformation[] = ['overlay' => $watermark, 'gravity' => 'auto', 'flags' => 'layer_apply'];
                 }
             }
 
             // Add quality
-            // $transformation[] = ['quality' => $quality];
+            $transformation[] = ['quality' => $quality];
 
             // Add fill with the dominant color or auto padding
             if ($fill == 1) {
@@ -101,7 +94,6 @@ class CloudinaryProcessing
             $url = $cloudinary->image($public_id)
                 ->addTransformation($transformation)
                 ->resize($resize)
-                ->quality($quality)
                 ->toUrl();
 
             $results[] = (string) $url;
