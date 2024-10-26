@@ -58,7 +58,7 @@ class CloudinaryProcessing
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::color($hex));
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::generativeFill());
                 } elseif (!empty($this->params['default_bg_color_blur'])) {
                     $resize = Resize::pad()
                         ->width($width)
