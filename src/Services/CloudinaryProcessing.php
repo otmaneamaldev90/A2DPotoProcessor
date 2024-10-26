@@ -51,7 +51,12 @@ class CloudinaryProcessing
 
 
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            $url = $cloudinary->image($public_id);
+            return $url = $cloudinary->image($public_id)->overlay([
+                'public_id' => $watermark,
+                'width' => '1.0',
+                'height' => '1.0',
+                'crop' => 'fill'
+            ])->toUrl();
 
             $transformation = [];
 
@@ -96,12 +101,10 @@ class CloudinaryProcessing
 
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
-                $url = $url->effect('brightness', $brightness);
             }
 
             // Add contrast
             if ($contrast !== null && is_numeric($contrast)) {
-                $url = $url->effect('contrast', $contrast);
             }
 
             $url = $url->addTransformation($transformation)
