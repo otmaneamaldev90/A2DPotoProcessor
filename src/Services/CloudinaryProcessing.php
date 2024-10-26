@@ -6,7 +6,6 @@ use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Effect;
 use Cloudinary\Transformation\Background;
-use Cloudinary\Transformation\Color;
 
 
 class CloudinaryProcessing
@@ -52,6 +51,23 @@ class CloudinaryProcessing
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
             $transformation = [];
 
+            if (!empty($watermark)) {
+                $apply_overlay = false;
+                if (in_array('1', $overlay_images) && $key == 0) {
+                    $apply_overlay = true;
+                }
+                if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1)) {
+                    $apply_overlay = true;
+                }
+                if (in_array('3', $overlay_images) && $key == (count($photos) - 1)) {
+                    $apply_overlay = true;
+                }
+
+                if ($apply_overlay) {
+                    $transformation[] = ['overlay' => $watermark];
+                }
+            }
+
             // Add quality
             $transformation[] = ['quality' => $quality];
 
@@ -59,7 +75,7 @@ class CloudinaryProcessing
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $resize = Resize::pad()->width($width)->height($height)->background(Color::rgb($hex));
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
                 } elseif (!empty($this->params['default_bg_color_blur'])) {
                     $resize = Resize::pad()->width($width)->height($height)->background(Background::generativeFill());
                 } else {
@@ -80,21 +96,7 @@ class CloudinaryProcessing
             }
 
             // Add watermark directly to the image
-            if (!empty($watermark)) {
-                $watermark_order = false;
-                if (in_array('1', $overlay_images) && $key == 0) {
-                    $watermark_order = true;
-                }
-                if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1)) {
-                    $watermark_order = true;
-                }
-                if (in_array('3', $overlay_images) && $key == (count($photos) - 1)) {
-                    $watermark_order = true;
-                }
-                if ($watermark_order) {
-                    $transformation[] = ['overlay' => $watermark];
-                }
-            }
+            
 
             $url = $cloudinary->image($public_id)
                 ->resize($resize)
