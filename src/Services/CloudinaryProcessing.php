@@ -62,7 +62,14 @@ class CloudinaryProcessing
                     $apply_overlay = true;
                 }
                 if ($apply_overlay) {
-                    $transformation[] = ['overlay' => $watermark, 'gravity' => 'center', 'x' => 10, 'y' => 10, 'crop' => 'scale', 'flags' => 'layer_apply'];
+                    $transformation[] = [
+                        'overlay' => $watermark,
+                        'gravity' => 'south_east',
+                        'width' => $width,
+                        'height' => $height,
+                        'crop' => 'fill',
+                        'flags' => 'layer_apply'
+                    ];
                 }
             }
 
