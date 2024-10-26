@@ -56,11 +56,11 @@ class CloudinaryProcessing
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $transformation[] = ['crop' => 'fit', 'background' => "rgb:$hex"];
+                    $transformation[] = ['background' => "rgb:$hex"];
                 } elseif (!empty($this->params['default_bg_color_blur'])) {
-                    $transformation[] = ['crop' => 'fit', 'background' => 'blur'];
+                    $transformation[] = ['background' => 'blur'];
                 } else {
-                    $transformation[] = ['crop' => 'fit'];
+                    $transformation[] = ['background' => 'auto'];
                 }
             }
 
