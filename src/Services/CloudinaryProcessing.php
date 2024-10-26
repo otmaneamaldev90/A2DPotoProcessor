@@ -5,6 +5,7 @@ namespace AutoDealersDigital\PhotoProcessor\Services;
 use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Effect;
+use Cloudinary\Transformation\Background;
 
 class CloudinaryProcessing
 {
@@ -52,26 +53,26 @@ class CloudinaryProcessing
             // Add quality
             $transformation[] = ['quality' => $quality];
 
-            // Add fill
+            // Add fill with the dominant color or auto padding
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $transformation[] = ['background' => "rgb:$hex"];
-                } elseif (!empty($this->params['default_bg_color_blur'])) {
-                    $transformation[] = ['background' => 'blur'];
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::rgb($hex));
                 } else {
-                    $transformation[] = ['background' => 'auto'];
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::predominant());
                 }
+            } else {
+                $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
             }
 
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
-                $transformation[] = ['effect' => Effect::brightness($brightness)];
+                $transformation[] = Effect::brightness($brightness);
             }
 
             // Add contrast
             if ($contrast !== null && is_numeric($contrast)) {
-                $transformation[] = ['effect' => Effect::contrast($contrast)];
+                $transformation[] = Effect::contrast($contrast);
             }
 
             // Add watermark directly to the image
@@ -87,12 +88,12 @@ class CloudinaryProcessing
                     $watermark_order = true;
                 }
                 if ($watermark_order) {
-                    $transformation[] = ['overlay' => 'image:' . $watermark];
+                    $transformation[] = ['overlay' => $watermark];
                 }
             }
 
             $url = $cloudinary->image($public_id)
-                ->resize(Resize::fit($width, $height))
+                ->resize($resize)
                 ->addTransformation($transformation)
                 ->toUrl();
 
