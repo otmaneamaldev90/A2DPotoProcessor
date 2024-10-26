@@ -45,31 +45,31 @@ class CloudinaryProcessing
 
         foreach ($photos as $key => $photo) {
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            $transformations = [];
+            $transformation = [];
 
             // Add quality
-            $transformations[] = ['quality' => $quality];
+            $transformation[] = ['quality' => $quality];
 
             // Add fill
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $transformations[] = ['crop' => 'fill', 'background' => "rgb:$hex"];
+                    $transformation[] = ['crop' => 'fill', 'background' => "rgb:$hex"];
                 } elseif (!empty($this->params['default_bg_color_blur'])) {
-                    $transformations[] = ['crop' => 'fill', 'background' => 'blur'];
+                    $transformation[] = ['crop' => 'fill', 'background' => 'blur'];
                 } else {
-                    $transformations[] = ['crop' => 'fill'];
+                    $transformation[] = ['crop' => 'fill'];
                 }
             }
 
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
-                $transformations[] = ['effect' => 'brightness:' . $brightness];
+                $transformation[] = ['effect' => 'brightness:' . $brightness];
             }
 
             // Add contrast
             if ($contrast !== null && is_numeric($contrast)) {
-                $transformations[] = ['effect' => 'contrast:' . $contrast];
+                $transformation[] = ['effect' => 'contrast:' . $contrast];
             }
 
             // Add watermark
@@ -84,12 +84,12 @@ class CloudinaryProcessing
                 $watermark_order = true;
             }
             if ($watermark_order) {
-                $transformations[] = ['overlay' => $watermark];
+                $transformation[] = ['overlay' => $watermark];
             }
 
             $url = $cloudinary->image($public_id)
-                ->transformation($transformations)
                 ->resize($width, $height, 'fill')
+                ->addTransformation($transformation)
                 ->toUrl();
 
             $results[] = (string) $url;
