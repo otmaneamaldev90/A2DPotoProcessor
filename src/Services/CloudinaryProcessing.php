@@ -51,7 +51,7 @@ class CloudinaryProcessing
 
 
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            return $url = $cloudinary->image($public_id)->overlay([
+            return $url =(string) $cloudinary->image($public_id)->overlay([
                 'public_id' => $watermark,
                 'width' => '1.0',
                 'height' => '1.0',
