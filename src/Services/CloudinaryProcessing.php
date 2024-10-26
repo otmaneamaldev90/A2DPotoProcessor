@@ -6,7 +6,8 @@ use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Effect;
 use Cloudinary\Transformation\Background;
-use Cloudinary\Transformation\GradientDirection;
+use Cloudinary\Transformation\Color;
+
 
 class CloudinaryProcessing
 {
@@ -58,7 +59,7 @@ class CloudinaryProcessing
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $resize = Resize::pad()->width($width)->height($height)->backgroundColor(Color::rgb($hex));
+                    $resize = Resize::pad()->width($width)->height($height)->background(Color::rgb($hex));
                 } elseif (!empty($this->params['default_bg_color_blur'])) {
                     $resize = Resize::pad()->width($width)->height($height)->background(Background::generativeFill());
                 } else {
