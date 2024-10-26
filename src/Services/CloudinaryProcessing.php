@@ -27,8 +27,14 @@ class CloudinaryProcessing
 
         $results = [];
         $photos = $this->params['photos'] ?? [];
-        $quality = $this->params['quality'] ?? 100; // Default to 100 if not provided
-        $fill = $this->params['fill'] ?? 1; // Default fill option
+        $quality = $this->params['quality'] ?? 100;
+        $brightness = $this->params['brightness'] ?? null;
+        $contrast = $this->params['contrast'] ?? null;
+        $width = $this->params['width'] ?? 800;
+        $height = $this->params['height'] ?? 600;
+        $fill = $this->params['fill'] ?? 1;
+        $overlay_images = $this->params['overlay_images'] ?? [];
+        $watermark = $this->params['watermark_images'] ?? '';
 
         // Sort photos numerically by the 'photo' key
         usort($photos, function ($a, $b) {
@@ -37,25 +43,60 @@ class CloudinaryProcessing
             return $numA - $numB;
         });
 
-        // Generate URLs with quality and background fill for each sorted photo
-        foreach ($photos as $photo) {
+        foreach ($photos as $key => $photo) {
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
-            $image = $cloudinary->image($public_id)->quality($quality);
+            $transformations = [];
 
-            // Apply fill options based on the fill parameter
+            // Add quality
+            $transformations[] = ['quality' => $quality];
+
+            // Add fill
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $image->background($hex);
+                    $transformations[] = ['crop' => 'fill', 'background' => "rgb:$hex"];
                 } elseif (!empty($this->params['default_bg_color_blur'])) {
-                    $image->background('blur');
+                    $transformations[] = ['crop' => 'fill', 'background' => 'blur'];
                 } else {
-                    $image->background('auto');
+                    $transformations[] = ['crop' => 'fill'];
                 }
             }
 
-            $url = $image->toUrl();
+            // Add brightness
+            if ($brightness !== null && is_numeric($brightness)) {
+                $transformations[] = ['effect' => 'brightness:' . $brightness];
+            }
+
+            // Add contrast
+            if ($contrast !== null && is_numeric($contrast)) {
+                $transformations[] = ['effect' => 'contrast:' . $contrast];
+            }
+
+            // Add watermark
+            $watermark_order = false;
+            if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
+                $watermark_order = true;
+            }
+            if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
+                $watermark_order = true;
+            }
+            if (in_array('3', $overlay_images) &&  $key == (count($photos) - 1) && !empty($watermark)) {
+                $watermark_order = true;
+            }
+            if ($watermark_order) {
+                $transformations[] = ['overlay' => $watermark];
+            }
+
+            $url = $cloudinary->image($public_id)
+                ->transformation($transformations)
+                ->resize($width, $height, 'fill')
+                ->toUrl();
+
             $results[] = (string) $url;
+        }
+
+        if (empty($photos)) {
+            \Log::warning("No photos were found");
         }
 
         return $results;
