@@ -7,20 +7,16 @@ use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Effect;
 use Cloudinary\Transformation\Background;
 
-
-class CloudinaryProcessing
-{
+class CloudinaryProcessing {
     protected $params;
     protected $vehicle_id;
 
-    public function __construct($params, $vehicle_id)
-    {
+    public function __construct($params, $vehicle_id) {
         $this->params = $params;
         $this->vehicle_id = $vehicle_id;
     }
 
-    public function process()
-    {
+    public function process() {
         $cloudinary = new Cloudinary([
             'cloud' => [
                 'cloud_name' => config('photo_processor.services.cloudinary.cloud_name'),
@@ -62,9 +58,8 @@ class CloudinaryProcessing
                 if (in_array('3', $overlay_images) && $key == (count($photos) - 1)) {
                     $apply_overlay = true;
                 }
-
                 if ($apply_overlay) {
-                    $transformation[] = ['overlay' => $watermark, 'gravity' => 'south_east', 'x' => 10, 'y' => 10, 'crop' => 'scale'];
+                    $transformation[] = ['overlay' => $watermark, 'gravity' => 'south_east', 'x' => 10, 'y' => 10, 'crop' => 'scale', 'flags' => 'layer_apply'];
                 }
             }
 
@@ -94,9 +89,6 @@ class CloudinaryProcessing
             if ($contrast !== null && is_numeric($contrast)) {
                 $transformation[] = Effect::contrast($contrast);
             }
-
-            // Add watermark directly to the image
-
 
             $url = $cloudinary->image($public_id)
                 ->resize($resize)
