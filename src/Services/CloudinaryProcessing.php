@@ -52,7 +52,7 @@ class CloudinaryProcessing
 
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
             $url = $cloudinary->image($public_id);
-            
+
             $transformation = [];
 
             if (!empty($watermark)) {
@@ -67,7 +67,13 @@ class CloudinaryProcessing
                     $apply_overlay = true;
                 }
                 if ($apply_overlay) {
-                    $transformation[] = ['overlay' => $watermark, 'flags' => 'layer_apply'];
+                    // $transformation[] = ['overlay' => $watermark, 'flags' => 'layer_apply', 'width' => $width , 'height' => $height];
+                    $url = $url->overlay([
+                        'public_id' => $watermark,
+                        'width' => '1.0',
+                        'height' => '1.0',
+                        'crop' => 'fill'
+                    ]);
                 }
             }
 
@@ -90,7 +96,7 @@ class CloudinaryProcessing
 
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
-                $url= $url->effect('brightness', $brightness);
+                $url = $url->effect('brightness', $brightness);
             }
 
             // Add contrast
