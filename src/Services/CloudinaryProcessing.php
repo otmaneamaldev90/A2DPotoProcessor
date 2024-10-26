@@ -52,22 +52,23 @@ class CloudinaryProcessing
 
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
             $url = $cloudinary->image($public_id);
-            
+
             $transformation = [];
 
             if (!empty($watermark)) {
                 $apply_overlay = false;
-                if (in_array('1', $overlay_images) && $key == 0) {
-                    $apply_overlay = true;
-                }
-                if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1)) {
-                    $apply_overlay = true;
-                }
-                if (in_array('3', $overlay_images) && $key == (count($photos) - 1)) {
-                    $apply_overlay = true;
-                }
+                if (in_array('1', $overlay_images) && $key == 0) $apply_overlay = true;
+                if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1)) $apply_overlay = true;
+                if (in_array('3', $overlay_images) && $key == (count($photos) - 1)) $apply_overlay = true;
+
                 if ($apply_overlay) {
-                    $transformation[] = ['overlay' => $watermark, 'flags' => 'layer_apply', "width" => $width , "height" => $height];
+                    $transformation[] = [
+                        'overlay' => $watermark,
+                        'width' => $width,
+                        'height' => $height,
+                        'crop' => 'fill',
+                        'flags' => 'layer_apply'
+                    ];
                 }
             }
 
@@ -76,26 +77,19 @@ class CloudinaryProcessing
 
             // Add fill with the dominant color or auto padding
             if ($fill == 1) {
-                if (!empty($this->params['default_bg_color'])) {
-                    $hex = ltrim($this->params['default_bg_color'], '#');
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
-                } elseif (!empty($this->params['default_bg_color_blur'])) {
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::generativeFill());
-                } else {
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::predominant());
-                }
+                $resize = Resize::pad()->width($width)->height($height)->background($this->determineBackground());
             } else {
                 $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
             }
 
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
-                $url= $url->effect('brightness', $brightness);
+                // $url= $url->effect('brightness', $brightness);
             }
 
             // Add contrast
             if ($contrast !== null && is_numeric($contrast)) {
-                $url = $url->effect('contrast', $contrast);
+                // $url = $url->effect('contrast', $contrast);
             }
 
             $url = $url->addTransformation($transformation)
@@ -110,5 +104,19 @@ class CloudinaryProcessing
         }
 
         return $results;
+    }
+
+
+
+    private function determineBackground()
+    {
+        if (!empty($this->params['default_bg_color'])) {
+            $hex = ltrim($this->params['default_bg_color'], '#');
+            return Background::rgb($hex);
+        } elseif (!empty($this->params['default_bg_color_blur'])) {
+            return Background::generativeFill();
+        } else {
+            return Background::predominant();
+        }
     }
 }
