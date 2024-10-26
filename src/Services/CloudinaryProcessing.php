@@ -77,9 +77,9 @@ class CloudinaryProcessing
 
             // Add fill with the dominant color or auto padding
             if ($fill == 1) {
-                $resize = Resize::fill()->width($width)->height($height)->background($this->determineBackground());
+                $resize = Resize::fill()->width($width)->height($height);
             } else {
-                $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
+                $resize = Resize::pad()->width($width)->height($height)->background($this->determineBackground());
             }
 
             // Add brightness
