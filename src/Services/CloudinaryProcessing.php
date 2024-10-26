@@ -3,6 +3,7 @@
 namespace AutoDealersDigital\PhotoProcessor\Services;
 
 use Cloudinary\Cloudinary;
+use Cloudinary\Transformation\Resize;
 
 class CloudinaryProcessing
 {
@@ -80,7 +81,7 @@ class CloudinaryProcessing
             if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
                 $watermark_order = true;
             }
-            if (in_array('3', $overlay_images) &&  $key == (count($photos) - 1) && !empty($watermark)) {
+            if (in_array('3', $overlay_images) && $key == (count($photos) - 1) && !empty($watermark)) {
                 $watermark_order = true;
             }
             if ($watermark_order) {
@@ -88,7 +89,7 @@ class CloudinaryProcessing
             }
 
             $url = $cloudinary->image($public_id)
-                ->resize($width, $height, 'fill')
+                ->resize(Resize::fill($width, $height))
                 ->addTransformation($transformation)
                 ->toUrl();
 
