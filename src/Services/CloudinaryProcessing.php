@@ -6,6 +6,7 @@ use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Effect;
 use Cloudinary\Transformation\Background;
+use Cloudinary\Transformation\GradientDirection;
 
 class CloudinaryProcessing
 {
@@ -56,8 +57,15 @@ class CloudinaryProcessing
             // Add fill with the dominant color or auto padding
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
-                    $hex = $this->hexToRgbFormat($this->params['default_bg_color']);
-                    $resize = Resize::pad()->width($width)->height($height)->background(Background::rgb($hex));
+                    $hex = ltrim($this->params['default_bg_color'], '#');
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::color($hex));
+                } elseif (!empty($this->params['default_bg_color_blur'])) {
+                    $resize = Resize::pad()
+                        ->width($width)
+                        ->height($height)
+                        ->background(Background::predominantGradient()
+                            ->gradientDirection(GradientDirection::diagonalDesc())
+                            ->gradientColors(2));
                 } else {
                     $resize = Resize::pad()->width($width)->height($height)->background(Background::predominant());
                 }
