@@ -77,7 +77,7 @@ class CloudinaryProcessing
 
             // Add fill with the dominant color or auto padding
             if ($fill == 1) {
-                $resize = Resize::pad()->width($width)->height($height)->background($this->determineBackground());
+                $resize = Resize::fill()->width($width)->height($height)->background($this->determineBackground());
             } else {
                 $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
             }
@@ -113,9 +113,13 @@ class CloudinaryProcessing
         if (!empty($this->params['default_bg_color'])) {
             $hex = ltrim($this->params['default_bg_color'], '#');
             return Background::rgb($hex);
-        } elseif (!empty($this->params['default_bg_color_blur'])) {
+        }
+
+        if (!empty($this->params['default_bg_color_blur'])) {
             return Background::generativeFill();
-        } else {
+        }
+
+        if (empty($this->params['default_bg_color']) && empty($this->params['default_bg_color_blur'])) {
             return Background::predominant();
         }
     }
