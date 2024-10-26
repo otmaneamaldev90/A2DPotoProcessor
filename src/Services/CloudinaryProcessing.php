@@ -64,7 +64,7 @@ class CloudinaryProcessing
                 }
 
                 if ($apply_overlay) {
-                    $transformation[] = ['overlay' => $watermark];
+                    $transformation[] = ['overlay' => $watermark, 'gravity' => 'south_east', 'x' => 10, 'y' => 10, 'crop' => 'scale'];
                 }
             }
 
@@ -96,7 +96,7 @@ class CloudinaryProcessing
             }
 
             // Add watermark directly to the image
-            
+
 
             $url = $cloudinary->image($public_id)
                 ->resize($resize)
@@ -112,5 +112,4 @@ class CloudinaryProcessing
 
         return $results;
     }
-
 }
