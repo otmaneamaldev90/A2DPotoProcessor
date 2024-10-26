@@ -63,9 +63,7 @@ class CloudinaryProcessing
                     $resize = Resize::pad()
                         ->width($width)
                         ->height($height)
-                        ->background(Background::predominantGradient()
-                            ->gradientDirection(GradientDirection::diagonalDesc())
-                            ->gradientColors(2));
+                        ->background(Background::predominantGradient());
                 } else {
                     $resize = Resize::pad()->width($width)->height($height)->background(Background::predominant());
                 }
