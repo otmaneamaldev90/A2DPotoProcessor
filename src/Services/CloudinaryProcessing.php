@@ -4,6 +4,7 @@ namespace AutoDealersDigital\PhotoProcessor\Services;
 
 use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
+use Cloudinary\Transformation\Effect;
 
 class CloudinaryProcessing
 {
@@ -65,27 +66,29 @@ class CloudinaryProcessing
 
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
-                $transformation[] = ['effect' => 'brightness:' . $brightness];
+                $transformation[] = ['effect' => Effect::brightness($brightness)];
             }
 
             // Add contrast
             if ($contrast !== null && is_numeric($contrast)) {
-                $transformation[] = ['effect' => 'contrast:' . $contrast];
+                $transformation[] = ['effect' => Effect::contrast($contrast)];
             }
 
-            // Add watermark
-            $watermark_order = false;
-            if (in_array('1', $overlay_images) && $key == 0 && !empty($watermark)) {
-                $watermark_order = true;
-            }
-            if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1) && !empty($watermark)) {
-                $watermark_order = true;
-            }
-            if (in_array('3', $overlay_images) && $key == (count($photos) - 1) && !empty($watermark)) {
-                $watermark_order = true;
-            }
-            if ($watermark_order) {
-                $transformation[] = ['overlay' => $watermark];
+            // Add watermark directly to the image
+            if (!empty($watermark)) {
+                $watermark_order = false;
+                if (in_array('1', $overlay_images) && $key == 0) {
+                    $watermark_order = true;
+                }
+                if (in_array('2', $overlay_images) && $key != 0 && $key != (count($photos) - 1)) {
+                    $watermark_order = true;
+                }
+                if (in_array('3', $overlay_images) && $key == (count($photos) - 1)) {
+                    $watermark_order = true;
+                }
+                if ($watermark_order) {
+                    $transformation[] = ['overlay' => 'image:' . $watermark];
+                }
             }
 
             $url = $cloudinary->image($public_id)
