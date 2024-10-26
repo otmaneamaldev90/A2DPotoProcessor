@@ -7,16 +7,19 @@ use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Effect;
 use Cloudinary\Transformation\Background;
 
-class CloudinaryProcessing {
+class CloudinaryProcessing
+{
     protected $params;
     protected $vehicle_id;
 
-    public function __construct($params, $vehicle_id) {
+    public function __construct($params, $vehicle_id)
+    {
         $this->params = $params;
         $this->vehicle_id = $vehicle_id;
     }
 
-    public function process() {
+    public function process()
+    {
         $cloudinary = new Cloudinary([
             'cloud' => [
                 'cloud_name' => config('photo_processor.services.cloudinary.cloud_name'),
@@ -59,24 +62,38 @@ class CloudinaryProcessing {
                     $apply_overlay = true;
                 }
                 if ($apply_overlay) {
-                    $transformation[] = ['overlay' => $watermark, 'gravity' => 'south_east', 'x' => 10, 'y' => 10, 'crop' => 'scale', 'flags' => 'layer_apply'];
+                    $transformation[] = ['overlay' => $watermark, 'gravity' => 'center', 'x' => 10, 'y' => 10, 'crop' => 'scale', 'flags' => 'layer_apply'];
                 }
+            }
+
+            // Add quality
+            // $transformation[] = ['quality' => $quality];
+
+            // Add fill with the dominant color or auto padding
+            if ($fill == 1) {
+                if (!empty($this->params['default_bg_color'])) {
+                    $hex = ltrim($this->params['default_bg_color'], '#');
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
+                } elseif (!empty($this->params['default_bg_color_blur'])) {
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::generativeFill());
+                } else {
+                    $resize = Resize::pad()->width($width)->height($height)->background(Background::predominant());
+                }
+            } else {
+                $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
             }
 
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
-                $transformation[] = Effect::brightness($brightness);
             }
 
             // Add contrast
             if ($contrast !== null && is_numeric($contrast)) {
-                $transformation[] = Effect::contrast($contrast);
             }
 
-            // Apply the transformation
             $url = $cloudinary->image($public_id)
                 ->addTransformation($transformation)
-                ->resize(Resize::pad()->width($width)->height($height)->background(Background::auto()))
+                ->resize($resize)
                 ->quality($quality)
                 ->toUrl();
 
