@@ -6,6 +6,8 @@ use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Effect;
 use Cloudinary\Transformation\Background;
+use Cloudinary\Transformation\Overlay;
+use Cloudinary\Transformation\Source;
 
 class CloudinaryProcessing
 {
@@ -63,12 +65,7 @@ class CloudinaryProcessing
                 }
                 if ($apply_overlay) {
                     $transformation[] = [
-                        'overlay' => $watermark,
-                        'gravity' => 'south_east',
-                        'width' => $width,
-                        'height' => $height,
-                        'crop' => 'fill',
-                        'flags' => 'layer_apply'
+                        // 'overlay' => $watermark,
                     ];
                 }
             }
@@ -101,6 +98,7 @@ class CloudinaryProcessing
             $url = $cloudinary->image($public_id)
                 ->addTransformation($transformation)
                 ->resize($resize)
+                ->overlay(Overlay::source(Source::image($watermark)))
                 ->quality($quality)
                 ->toUrl();
 
