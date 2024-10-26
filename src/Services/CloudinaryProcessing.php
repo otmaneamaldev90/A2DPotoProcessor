@@ -50,9 +50,6 @@ class CloudinaryProcessing
             $public_id = "{$this->params['user_id']}/{$this->vehicle_id}/{$photo['photo']}";
             $transformation = [];
 
-            $url = $cloudinary->image($public_id)
-                ->quality($quality);
-
             if (!empty($watermark)) {
                 $apply_overlay = false;
                 if (in_array('1', $overlay_images) && $key == 0) {
@@ -73,18 +70,11 @@ class CloudinaryProcessing
                         'crop' => 'fill',
                         'flags' => 'layer_apply'
                     ];
-                    $url->addTransformation([
-                        'overlay' => $watermark,
-                        'gravity' => 'auto',
-                        'width' => $width,
-                        'height' => $height,
-                        'crop' => 'fill',
-                        'flags' => 'layer_apply'
-                    ]);
                 }
-
-
             }
+
+            // Add quality
+            // $transformation[] = ['quality' => $quality];
 
             // Add fill with the dominant color or auto padding
             if ($fill == 1) {
@@ -100,8 +90,6 @@ class CloudinaryProcessing
                 $resize = Resize::pad()->width($width)->height($height)->background(Background::auto());
             }
 
-            $url->addTransformation($resize);
-
             // Add brightness
             if ($brightness !== null && is_numeric($brightness)) {
             }
@@ -110,8 +98,13 @@ class CloudinaryProcessing
             if ($contrast !== null && is_numeric($contrast)) {
             }
 
+            $url = $cloudinary->image($public_id)
+                ->addTransformation($transformation)
+                ->resize($resize)
+                ->quality($quality)
+                ->toUrl();
 
-            $results[] = (string) $url->toUrl();;
+            $results[] = (string) $url;
         }
 
         if (empty($photos)) {
