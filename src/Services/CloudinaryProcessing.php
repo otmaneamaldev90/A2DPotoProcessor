@@ -55,11 +55,11 @@ class CloudinaryProcessing
             if ($fill == 1) {
                 if (!empty($this->params['default_bg_color'])) {
                     $hex = ltrim($this->params['default_bg_color'], '#');
-                    $transformation[] = ['crop' => 'fill', 'background' => "rgb:$hex"];
+                    $transformation[] = ['crop' => 'fit', 'background' => "rgb:$hex"];
                 } elseif (!empty($this->params['default_bg_color_blur'])) {
-                    $transformation[] = ['crop' => 'fill', 'background' => 'blur'];
+                    $transformation[] = ['crop' => 'fit', 'background' => 'blur'];
                 } else {
-                    $transformation[] = ['crop' => 'fill'];
+                    $transformation[] = ['crop' => 'fit'];
                 }
             }
 
@@ -89,7 +89,7 @@ class CloudinaryProcessing
             }
 
             $url = $cloudinary->image($public_id)
-                ->resize(Resize::fill($width, $height))
+                ->resize(Resize::fit($width, $height))
                 ->addTransformation($transformation)
                 ->toUrl();
 
